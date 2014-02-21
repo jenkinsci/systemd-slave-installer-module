@@ -41,8 +41,9 @@ public class SlaveInstallerFactoryImpl extends SlaveInstallerFactory {
         public Boolean call() throws IOException {
             try {
                 if (!new File("/etc/systemd/system").isDirectory())
-                    return false;   // no directory
+                    return false;   // this is where we write service files
 
+                // make sure systemd is actually running
                 Process p = new ProcessBuilder("systemctl", "list-units").redirectErrorStream(true).start();
                 p.getOutputStream().close();
                 drain(p.getInputStream());
