@@ -4,6 +4,6 @@ Wants=network.target
 After=network.target
 
 [Service]
-ExecStart=java -jar {jar} {args}
+ExecStart={java} -jar {jar} {args}
 User={username}
 Restart=always

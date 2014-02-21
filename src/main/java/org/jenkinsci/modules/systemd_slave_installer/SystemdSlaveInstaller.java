@@ -1,5 +1,6 @@
 package org.jenkinsci.modules.systemd_slave_installer;
 
+import com.sun.akuma.JavaVMArguments;
 import hudson.os.SU;
 import hudson.remoting.Callable;
 import hudson.util.StreamTaskListener;
@@ -38,6 +39,7 @@ public class SystemdSlaveInstaller extends AbstractUnixSlaveInstaller {
         final String args = params.buildRunnerArguments().toStringWithQuote();
         final File rootDir = params.getStorage().getAbsoluteFile();
         final StreamTaskListener listener = StreamTaskListener.fromStdout();
+        final String java = System.getProperty("java.home") + "/bin/java";
         final String userName = getCurrentUnixUserName();
 
         String rootUser = prompter.prompt("Specify the super user name to 'sudo' to","root");
@@ -52,6 +54,7 @@ public class SystemdSlaveInstaller extends AbstractUnixSlaveInstaller {
                     String conf = IOUtils.toString(getClass().getResourceAsStream("jenkins-slave.service"));
                     conf = conf
                             .replace("{username}", userName)
+                            .replace("{java}", java)
                             .replace("{jar}", slaveJar.getAbsolutePath())
                             .replace("{args}", args);
 
