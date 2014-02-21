@@ -4,7 +4,6 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.remoting.Callable;
 import hudson.remoting.Channel;
-import hudson.util.IOUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.jenkinsci.modules.slave_installer.SlaveInstaller;
