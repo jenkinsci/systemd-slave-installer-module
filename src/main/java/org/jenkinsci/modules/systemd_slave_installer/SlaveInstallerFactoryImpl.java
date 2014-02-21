@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.security.interfaces.RSAPublicKey;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * {@link SlaveInstallerFactory} for systemd.
@@ -47,6 +49,11 @@ public class SlaveInstallerFactoryImpl extends SlaveInstallerFactory {
                 p.getOutputStream().close();
                 drain(p.getInputStream());
                 return p.waitFor()==0;
+            } catch (IOException e) {
+                // if systemctl is not present it fails with "No such file or directory",
+                // so this is to be expected. Leaving this in the log anyway just in case we want to understand why
+                LOGGER.log(Level.FINE, "doesn't look like you have systemd but here is the details",e);
+                return false;
             } catch (InterruptedException e) {
                 throw (IOException)new InterruptedIOException().initCause(e);
             }
@@ -62,5 +69,7 @@ public class SlaveInstallerFactoryImpl extends SlaveInstallerFactory {
         }
 
         private static final long serialVersionUID = 1L;
+
+        private static final Logger LOGGER = Logger.getLogger(HasSystemd.class.getName());
     }
 }
