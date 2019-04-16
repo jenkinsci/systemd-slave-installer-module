@@ -2,7 +2,6 @@ package org.jenkinsci.modules.systemd_slave_installer;
 
 import hudson.Extension;
 import hudson.Util;
-import hudson.remoting.Callable;
 import hudson.remoting.Channel;
 import org.apache.commons.codec.binary.Base64;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
@@ -13,10 +12,11 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InterruptedIOException;
+import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPublicKey;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jenkins.security.MasterToSlaveCallable;
 
 /**
  * {@link SlaveInstallerFactory} for systemd.
@@ -31,14 +31,16 @@ public class SlaveInstallerFactoryImpl extends SlaveInstallerFactory {
     @Override
     public SlaveInstaller createIfApplicable(Channel c) throws IOException, InterruptedException {
         if (c.call(new HasSystemd())) {
+            // TODO instance-identity 2.3 use getEncodedPublicKey
             RSAPublicKey key = id.getPublic();
-            String instanceId = Util.getDigestOf(new String(Base64.encodeBase64(key.getEncoded()))).substring(0,8);
+            String instanceId = Util.getDigestOf(new String(Base64.encodeBase64(key.getEncoded()), StandardCharsets.UTF_8)).substring(0,8);
             return new SystemdSlaveInstaller(instanceId);
         }
         return null;
     }
 
-    private static class HasSystemd implements Callable<Boolean, IOException> {
+    private static class HasSystemd extends MasterToSlaveCallable<Boolean, IOException> {
+        @Override
         public Boolean call() throws IOException {
             try {
                 if (!new File("/etc/systemd/system").isDirectory())
@@ -55,7 +57,7 @@ public class SlaveInstallerFactoryImpl extends SlaveInstallerFactory {
                 LOGGER.log(Level.FINE, "doesn't look like you have systemd but here is the details",e);
                 return false;
             } catch (InterruptedException e) {
-                throw (IOException)new InterruptedIOException().initCause(e);
+                throw new IOException(e);
             }
         }
 
